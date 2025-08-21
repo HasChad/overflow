@@ -1,11 +1,12 @@
 use crate::GRID_SIZE;
-use crate::TILE_SIZE;
+use crate::GamePhase;
+use crate::GameState;
 use crate::Tile;
 
-pub fn game_setup(grid: &mut [Tile]) {
-    for (index, tile) in grid.iter_mut().enumerate() {
-        let x = (index % GRID_SIZE);
-        let y = (index / GRID_SIZE);
+pub fn game_setup(state: &mut GameState) {
+    for (index, tile) in state.grid.iter_mut().enumerate() {
+        let x = index % GRID_SIZE;
+        let y = index / GRID_SIZE;
 
         if (x == 0 && y == 0)
             || (x == 0 && y == GRID_SIZE - 1)
@@ -25,4 +26,6 @@ pub fn game_setup(grid: &mut [Tile]) {
             *tile = Tile::Empty
         }
     }
+
+    state.game_phase = GamePhase::First;
 }
