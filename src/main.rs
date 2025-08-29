@@ -1,20 +1,21 @@
 // #![windows_subsystem = "windows"]
 
-use egui_macroquad::egui;
 use macroquad::prelude::*;
 
 mod app_settings;
 mod first_phase;
 mod game_setup;
+mod second_phase;
 mod ui;
 
 use app_settings::*;
 use first_phase::*;
 use game_setup::*;
+use second_phase::*;
 use ui::*;
 
 const TILE_SIZE: f32 = 50.0;
-const GRID_SIZE: usize = 11;
+const GRID_SIZE: usize = 6;
 
 #[derive(Clone, Debug, PartialEq)]
 enum Tile {
@@ -55,6 +56,11 @@ struct GameState {
 
 #[macroquad::main(window_conf)]
 async fn main() {
+    set_pc_assets_folder("assets");
+    set_default_filter_mode(FilterMode::Nearest);
+
+    let arrow_texture = load_texture("arrow.png").await.unwrap();
+
     let mut camera = Camera2D {
         zoom: vec2(2. / screen_width(), 2. / screen_height()),
         ..Default::default()
@@ -86,7 +92,7 @@ async fn main() {
         match game_state.game_phase {
             GamePhase::Setup => game_setup(&mut game_state),
             GamePhase::First => first_phase(&mut game_state, &world_mpos),
-            GamePhase::Second => (),
+            GamePhase::Second => second_phase(&mut game_state, &world_mpos),
             GamePhase::End => (),
         }
 
@@ -100,11 +106,32 @@ async fn main() {
             let x = (index % GRID_SIZE) as f32 * TILE_SIZE;
             let y = (index / GRID_SIZE) as f32 * TILE_SIZE;
 
+            let mut texture_param = DrawTextureParams {
+                dest_size: Some(Vec2 {
+                    x: TILE_SIZE,
+                    y: TILE_SIZE,
+                }),
+                source: None,
+                rotation: 0.,
+                flip_x: false,
+                flip_y: false,
+                pivot: None,
+            };
+
             match *tile {
-                Tile::PushUp => draw_rectangle(x, y, TILE_SIZE, TILE_SIZE, GREEN),
-                Tile::PushDown => draw_rectangle(x, y, TILE_SIZE, TILE_SIZE, PURPLE),
-                Tile::PushLeft => draw_rectangle(x, y, TILE_SIZE, TILE_SIZE, BLUE),
-                Tile::PushRight => draw_rectangle(x, y, TILE_SIZE, TILE_SIZE, YELLOW),
+                Tile::PushUp => {
+                    texture_param.rotation = (270.0f32).to_radians();
+                    draw_texture_ex(&arrow_texture, x, y, WHITE, texture_param);
+                }
+                Tile::PushDown => {
+                    texture_param.rotation = (90.0f32).to_radians();
+                    draw_texture_ex(&arrow_texture, x, y, WHITE, texture_param);
+                }
+                Tile::PushLeft => {
+                    texture_param.rotation = (180.0f32).to_radians();
+                    draw_texture_ex(&arrow_texture, x, y, WHITE, texture_param);
+                }
+                Tile::PushRight => draw_texture_ex(&arrow_texture, x, y, WHITE, texture_param),
                 Tile::Empty => draw_rectangle(x, y, TILE_SIZE, TILE_SIZE, GRAY),
                 Tile::Wall => draw_rectangle(x, y, TILE_SIZE, TILE_SIZE, DARKGRAY),
                 Tile::Player1 => draw_rectangle(x, y, TILE_SIZE, TILE_SIZE, RED),
