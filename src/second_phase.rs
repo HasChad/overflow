@@ -1,4 +1,4 @@
-use crate::{GRID_SIZE, GameState, TILE_SIZE, Tile};
+use crate::{GRID_SIZE, GamePhase, GameState, TILE_SIZE, Tile};
 use macroquad::prelude::*;
 
 pub fn second_phase(state: &mut GameState, m_pos: &Vec2) {
@@ -78,5 +78,10 @@ pub fn second_phase(state: &mut GameState, m_pos: &Vec2) {
                 }
             }
         }
+    }
+
+    if !state.grid.contains(&Tile::Player1) || !state.grid.contains(&Tile::Player2) {
+        state.game_phase = GamePhase::End;
+        state.focused_tile = None;
     }
 }
