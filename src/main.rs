@@ -1,18 +1,18 @@
-// #![windows_subsystem = "windows"]
+#![windows_subsystem = "windows"]
 
 use macroquad::prelude::*;
 
 mod app_settings;
+mod draw_game;
 mod first_phase;
 mod game_setup;
 mod second_phase;
-mod ui;
 
 use app_settings::*;
+use draw_game::*;
 use first_phase::*;
 use game_setup::*;
 use second_phase::*;
-use ui::*;
 
 const TILE_SIZE: f32 = 50.0;
 const GRID_SIZE: usize = 6;
@@ -47,11 +47,37 @@ enum GamePhase {
 }
 
 #[derive(Debug)]
+struct ButtonIndexes {
+    p_up: Vec<usize>,
+    p_down: Vec<usize>,
+    p_left: Vec<usize>,
+    p_right: Vec<usize>,
+}
+
+#[derive(Debug)]
 struct GameState {
     game_phase: GamePhase,
     grid: Vec<Tile>,
     focused_tile: Option<usize>,
     current_player: Players,
+    button_indexes: ButtonIndexes,
+}
+
+impl GameState {
+    pub fn new() -> Self {
+        Self {
+            game_phase: GamePhase::Setup,
+            grid: vec![Tile::Empty; GRID_SIZE * GRID_SIZE],
+            focused_tile: None,
+            current_player: Players::PlayerOne,
+            button_indexes: ButtonIndexes {
+                p_up: vec![],
+                p_down: vec![],
+                p_left: vec![],
+                p_right: vec![],
+            },
+        }
+    }
 }
 
 #[macroquad::main(window_conf)]
@@ -62,24 +88,19 @@ async fn main() {
     let arrow_texture = load_texture("arrow.png").await.unwrap();
 
     let mut camera = Camera2D {
+        target: Vec2::new(
+            GRID_SIZE as f32 / 2.0 * TILE_SIZE,
+            GRID_SIZE as f32 / 2.0 * TILE_SIZE,
+        ),
         zoom: vec2(2. / screen_width(), 2. / screen_height()),
         ..Default::default()
     };
-    let mut zoomer = ZOOM_DEFAULT;
 
-    // create grid
-    let mut game_state = GameState {
-        game_phase: GamePhase::Setup,
-        grid: vec![Tile::Empty; GRID_SIZE * GRID_SIZE],
-        focused_tile: None,
-        current_player: Players::PlayerOne,
-    };
+    let mut game_state = GameState::new();
 
     game_setup(&mut game_state);
 
     'game: loop {
-        camera_fixer(&mut camera, &mut zoomer);
-
         let world_mpos = camera.screen_to_world(Vec2 {
             x: mouse_position().0,
             y: mouse_position().1,
@@ -98,86 +119,10 @@ async fn main() {
 
         // ! draw
         clear_background(BLACK);
+        camera_fixer(&mut camera);
         set_camera(&camera);
 
-        // ui();
-
-        for (index, tile) in game_state.grid.iter().enumerate() {
-            let x = (index % GRID_SIZE) as f32 * TILE_SIZE;
-            let y = (index / GRID_SIZE) as f32 * TILE_SIZE;
-
-            let mut texture_param = DrawTextureParams {
-                dest_size: Some(Vec2 {
-                    x: TILE_SIZE,
-                    y: TILE_SIZE,
-                }),
-                source: None,
-                rotation: 0.,
-                flip_x: false,
-                flip_y: false,
-                pivot: None,
-            };
-
-            match *tile {
-                Tile::PushUp => {
-                    texture_param.rotation = (270.0f32).to_radians();
-                    draw_texture_ex(&arrow_texture, x, y, WHITE, texture_param);
-                }
-                Tile::PushDown => {
-                    texture_param.rotation = (90.0f32).to_radians();
-                    draw_texture_ex(&arrow_texture, x, y, WHITE, texture_param);
-                }
-                Tile::PushLeft => {
-                    texture_param.rotation = (180.0f32).to_radians();
-                    draw_texture_ex(&arrow_texture, x, y, WHITE, texture_param);
-                }
-                Tile::PushRight => draw_texture_ex(&arrow_texture, x, y, WHITE, texture_param),
-                Tile::Empty => draw_rectangle(x, y, TILE_SIZE, TILE_SIZE, GRAY),
-                Tile::Wall => draw_rectangle(x, y, TILE_SIZE, TILE_SIZE, DARKGRAY),
-                Tile::Player1 => draw_rectangle(x, y, TILE_SIZE, TILE_SIZE, RED),
-                Tile::Player2 => draw_rectangle(x, y, TILE_SIZE, TILE_SIZE, DARKBLUE),
-                Tile::Block1 => draw_rectangle(x, y, TILE_SIZE, TILE_SIZE, BLACK),
-                Tile::Block2 => draw_rectangle(x, y, TILE_SIZE, TILE_SIZE, BLACK),
-                _ => (),
-            }
-
-            draw_rectangle_lines(x, y, TILE_SIZE, TILE_SIZE, 2.0, BLACK);
-        }
-
-        if let Some(index) = game_state.focused_tile {
-            let x = (index % GRID_SIZE) as f32 * TILE_SIZE;
-            let y = (index / GRID_SIZE) as f32 * TILE_SIZE;
-
-            if index != 0
-                && index != GRID_SIZE - 1
-                && index != (GRID_SIZE * GRID_SIZE) - GRID_SIZE
-                && index != (GRID_SIZE * GRID_SIZE) - 1
-            {
-                let alpha = ((get_time() as f32 * 2.0).sin().abs() * 100.0) as u8;
-
-                let alpha_white = Color::from_rgba(255, 255, 255, alpha);
-                draw_rectangle(x, y, TILE_SIZE, TILE_SIZE, alpha_white);
-            }
-        }
-
-        set_default_camera();
-        draw_text(
-            format!("Phase: {:?}", game_state.game_phase).as_str(),
-            0.0,
-            10.0,
-            16.0,
-            WHITE,
-        );
-
-        draw_text(
-            format!("Player: {:?}", game_state.current_player).as_str(),
-            0.0,
-            20.0,
-            16.0,
-            WHITE,
-        );
-
-        // egui_macroquad::draw();
+        draw(&game_state, &arrow_texture);
 
         next_frame().await
     }
