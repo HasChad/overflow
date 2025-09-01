@@ -3,13 +3,15 @@
 use macroquad::prelude::*;
 
 mod app_settings;
-mod draw_game;
+mod draw;
+mod end_phase;
 mod first_phase;
 mod game_setup;
 mod second_phase;
 
 use app_settings::*;
-use draw_game::*;
+use draw::*;
+use end_phase::*;
 use first_phase::*;
 use game_setup::*;
 use second_phase::*;
@@ -32,7 +34,7 @@ enum Tile {
     Block2,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 enum Players {
     PlayerOne,
     PlayerTwo,
@@ -47,20 +49,13 @@ enum GamePhase {
 }
 
 #[derive(Debug)]
-struct ButtonIndexes {
-    p_up: Vec<usize>,
-    p_down: Vec<usize>,
-    p_left: Vec<usize>,
-    p_right: Vec<usize>,
-}
-
-#[derive(Debug)]
 struct GameState {
     game_phase: GamePhase,
     grid: Vec<Tile>,
     focused_tile: Option<usize>,
-    blocked_tiles: Vec<Tile>,
     current_player: Players,
+    round: usize,
+    winner: Option<Players>,
 }
 
 impl GameState {
@@ -69,8 +64,9 @@ impl GameState {
             game_phase: GamePhase::Setup,
             grid: vec![Tile::Empty; GRID_SIZE * GRID_SIZE],
             focused_tile: None,
-            blocked_tiles: vec![],
             current_player: Players::PlayerOne,
+            round: 1,
+            winner: None,
         }
     }
 }
@@ -109,15 +105,18 @@ async fn main() {
             GamePhase::Setup => game_setup(&mut game_state),
             GamePhase::First => first_phase(&mut game_state, &world_mpos),
             GamePhase::Second => second_phase(&mut game_state, &world_mpos),
-            GamePhase::End => (),
+            GamePhase::End => end(&mut game_state),
         }
 
         // ! draw
         clear_background(BLACK);
+
         camera_fixer(&mut camera);
         set_camera(&camera);
+        draw_game(&game_state, &arrow_texture);
 
-        draw(&game_state, &arrow_texture);
+        set_default_camera();
+        draw_ui(&game_state);
 
         next_frame().await
     }

@@ -2,7 +2,7 @@ use macroquad::prelude::*;
 
 use crate::{GRID_SIZE, GameState, TILE_SIZE, Tile};
 
-pub fn draw(state: &GameState, arrow_texture: &Texture2D) {
+pub fn draw_game(state: &GameState, arrow_texture: &Texture2D) {
     for (index, tile) in state.grid.iter().enumerate() {
         let x = (index % GRID_SIZE) as f32 * TILE_SIZE;
         let y = (index / GRID_SIZE) as f32 * TILE_SIZE;
@@ -60,21 +60,40 @@ pub fn draw(state: &GameState, arrow_texture: &Texture2D) {
             draw_rectangle(x, y, TILE_SIZE, TILE_SIZE, alpha_white);
         }
     }
+}
 
-    set_default_camera();
+pub fn draw_ui(state: &GameState) {
     draw_text(
         format!("Phase: {:?}", state.game_phase).as_str(),
-        0.0,
-        10.0,
+        5.0,
+        15.0,
         16.0,
         WHITE,
     );
 
     draw_text(
-        format!("Player: {:?}", state.current_player).as_str(),
-        0.0,
-        20.0,
+        format!("Turn: {:?}", state.current_player).as_str(),
+        5.0,
+        30.0,
         16.0,
         WHITE,
     );
+
+    draw_text(
+        format!("Pushing Round: {:?}", state.round).as_str(),
+        5.0,
+        45.0,
+        16.0,
+        WHITE,
+    );
+
+    if let Some(winner) = &state.winner {
+        draw_text(
+            format!("WINNER!!: {:?}", winner).as_str(),
+            5.0,
+            60.0,
+            16.0,
+            WHITE,
+        );
+    }
 }
