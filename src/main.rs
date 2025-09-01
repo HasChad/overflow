@@ -59,8 +59,8 @@ struct GameState {
     game_phase: GamePhase,
     grid: Vec<Tile>,
     focused_tile: Option<usize>,
+    blocked_tiles: Vec<Tile>,
     current_player: Players,
-    button_indexes: ButtonIndexes,
 }
 
 impl GameState {
@@ -69,13 +69,8 @@ impl GameState {
             game_phase: GamePhase::Setup,
             grid: vec![Tile::Empty; GRID_SIZE * GRID_SIZE],
             focused_tile: None,
+            blocked_tiles: vec![],
             current_player: Players::PlayerOne,
-            button_indexes: ButtonIndexes {
-                p_up: vec![],
-                p_down: vec![],
-                p_left: vec![],
-                p_right: vec![],
-            },
         }
     }
 }

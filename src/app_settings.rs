@@ -3,7 +3,7 @@ use macroquad::prelude::*;
 pub fn window_conf() -> Conf {
     Conf {
         window_title: "epaint".into(),
-        window_width: 800,
+        window_width: 600,
         window_height: 600,
         icon: None,
         ..Default::default()
