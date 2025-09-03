@@ -7,6 +7,7 @@ mod draw;
 mod end_phase;
 mod first_phase;
 mod game_setup;
+mod resources;
 mod second_phase;
 
 use app_settings::*;
@@ -14,9 +15,10 @@ use draw::*;
 use end_phase::*;
 use first_phase::*;
 use game_setup::*;
+use resources::*;
 use second_phase::*;
 
-const TILE_SIZE: f32 = 50.0;
+const TILE_SIZE: f32 = 64.;
 const GRID_SIZE: usize = 6;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -54,6 +56,7 @@ struct GameState {
     grid: Vec<Tile>,
     focused_tile: Option<usize>,
     current_player: Players,
+    blocked_lines: Vec<Vec2>,
     round: usize,
     winner: Option<Players>,
 }
@@ -65,6 +68,7 @@ impl GameState {
             grid: vec![Tile::Empty; GRID_SIZE * GRID_SIZE],
             focused_tile: None,
             current_player: Players::PlayerOne,
+            blocked_lines: vec![],
             round: 1,
             winner: None,
         }
@@ -76,7 +80,7 @@ async fn main() {
     set_pc_assets_folder("assets");
     set_default_filter_mode(FilterMode::Nearest);
 
-    let arrow_texture = load_texture("arrow.png").await.unwrap();
+    let textures = Resources::load_textures().await;
 
     let mut camera = Camera2D {
         target: Vec2::new(
@@ -113,7 +117,7 @@ async fn main() {
 
         camera_fixer(&mut camera);
         set_camera(&camera);
-        draw_game(&game_state, &arrow_texture);
+        draw_game(&game_state, &textures);
 
         set_default_camera();
         draw_ui(&game_state);

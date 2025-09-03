@@ -1,8 +1,8 @@
 use macroquad::prelude::*;
 
-use crate::{GRID_SIZE, GameState, TILE_SIZE, Tile};
+use crate::{GRID_SIZE, GameState, TILE_SIZE, Tile, resources::Resources};
 
-pub fn draw_game(state: &GameState, arrow_texture: &Texture2D) {
+pub fn draw_game(state: &GameState, textures: &Resources) {
     for (index, tile) in state.grid.iter().enumerate() {
         let x = (index % GRID_SIZE) as f32 * TILE_SIZE;
         let y = (index / GRID_SIZE) as f32 * TILE_SIZE;
@@ -22,27 +22,40 @@ pub fn draw_game(state: &GameState, arrow_texture: &Texture2D) {
         match *tile {
             Tile::PushUp => {
                 texture_param.rotation = (270.0f32).to_radians();
-                draw_texture_ex(&arrow_texture, x, y, WHITE, texture_param);
+                draw_texture_ex(&textures.arrow, x, y, WHITE, texture_param);
             }
             Tile::PushDown => {
                 texture_param.rotation = (90.0f32).to_radians();
-                draw_texture_ex(&arrow_texture, x, y, WHITE, texture_param);
+                draw_texture_ex(&textures.arrow, x, y, WHITE, texture_param);
             }
             Tile::PushLeft => {
                 texture_param.rotation = (180.0f32).to_radians();
-                draw_texture_ex(&arrow_texture, x, y, WHITE, texture_param);
+                draw_texture_ex(&textures.arrow, x, y, WHITE, texture_param);
             }
-            Tile::PushRight => draw_texture_ex(&arrow_texture, x, y, WHITE, texture_param),
+            Tile::PushRight => draw_texture_ex(&textures.arrow, x, y, WHITE, texture_param),
             Tile::Empty => draw_rectangle(x, y, TILE_SIZE, TILE_SIZE, GRAY),
-            Tile::Wall => draw_rectangle(x, y, TILE_SIZE, TILE_SIZE, DARKGRAY),
+            Tile::Wall => draw_texture_ex(&textures.wall, x, y, WHITE, texture_param),
             Tile::Player1 => draw_rectangle(x, y, TILE_SIZE, TILE_SIZE, RED),
             Tile::Player2 => draw_rectangle(x, y, TILE_SIZE, TILE_SIZE, DARKBLUE),
-            Tile::Block1 => draw_rectangle(x, y, TILE_SIZE, TILE_SIZE, BLACK),
-            Tile::Block2 => draw_rectangle(x, y, TILE_SIZE, TILE_SIZE, BLACK),
+            Tile::Block1 => draw_texture_ex(&textures.block, x, y, RED, texture_param),
+            Tile::Block2 => draw_texture_ex(&textures.block, x, y, BLUE, texture_param),
             _ => (),
         }
 
         draw_rectangle_lines(x, y, TILE_SIZE, TILE_SIZE, 2.0, BLACK);
+    }
+
+    for line in state.blocked_lines.iter() {
+        info!("blocked line = {:?}", line);
+
+        draw_line(
+            line.x * TILE_SIZE,
+            0.0,
+            line.x * TILE_SIZE * GRID_SIZE as f32,
+            TILE_SIZE * GRID_SIZE as f32,
+            2.0,
+            PINK,
+        );
     }
 
     if let Some(index) = state.focused_tile {
