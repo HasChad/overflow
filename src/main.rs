@@ -1,5 +1,7 @@
 #![windows_subsystem = "windows"]
 
+use std::collections::HashMap;
+
 use macroquad::prelude::*;
 
 mod app_settings;
@@ -21,7 +23,7 @@ use second_phase::*;
 const TILE_SIZE: f32 = 64.;
 const GRID_SIZE: usize = 6;
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 enum Tile {
     Edge,
     PushUp,
@@ -56,7 +58,7 @@ struct GameState {
     grid: Vec<Tile>,
     focused_tile: Option<usize>,
     current_player: Players,
-    blocked_lines: Vec<Vec2>,
+    blocked_lines: HashMap<Tile, Vec2>,
     round: usize,
     winner: Option<Players>,
 }
@@ -68,7 +70,7 @@ impl GameState {
             grid: vec![Tile::Empty; GRID_SIZE * GRID_SIZE],
             focused_tile: None,
             current_player: Players::PlayerOne,
-            blocked_lines: vec![],
+            blocked_lines: HashMap::new(),
             round: 1,
             winner: None,
         }

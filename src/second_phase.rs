@@ -18,22 +18,22 @@ pub fn second_phase(state: &mut GameState, m_pos: &Vec2) {
     if is_mouse_button_pressed(MouseButton::Right) && state.round > 2 {
         if let Some(index) = state.focused_tile {
             if state.grid[index] == Tile::Wall {
-                let x = (index % GRID_SIZE) as f32 * TILE_SIZE;
-                let y = (index / GRID_SIZE) as f32 * TILE_SIZE;
+                let x = (index % GRID_SIZE) as f32;
+                let y = (index / GRID_SIZE) as f32;
 
                 if state.current_player == Players::PlayerOne {
                     if state.grid.contains(&Tile::Block1) {
                         let index = state.grid.iter().position(|r| r == &Tile::Block1).unwrap();
                         state.grid[index] = Tile::Wall;
-                        state.blocked_lines.push(Vec2::new(x, y));
                     }
+                    state.blocked_lines.insert(Tile::Player1, Vec2::new(x, y));
                     state.grid[index] = Tile::Block1;
                 } else if state.current_player == Players::PlayerTwo {
                     if state.grid.contains(&Tile::Block2) {
                         let index = state.grid.iter().position(|r| r == &Tile::Block2).unwrap();
                         state.grid[index] = Tile::Wall;
-                        state.blocked_lines.push(Vec2::new(x, y));
                     }
+                    state.blocked_lines.insert(Tile::Player2, Vec2::new(x, y));
                     state.grid[index] = Tile::Block2;
                 }
 
@@ -48,12 +48,12 @@ pub fn second_phase(state: &mut GameState, m_pos: &Vec2) {
 
     if is_mouse_button_pressed(MouseButton::Left) {
         if let Some(index) = state.focused_tile {
-            let x = (index % GRID_SIZE) as f32 * TILE_SIZE;
-            let y = (index / GRID_SIZE) as f32 * TILE_SIZE;
-
             for line in state.blocked_lines.iter() {
-                if line.x == x || line.y == y {
-                    info!("test")
+                let x = (index % GRID_SIZE) as f32;
+                let y = (index / GRID_SIZE) as f32;
+
+                if x == line.1.x || y == line.1.y {
+                    return;
                 }
             }
 

@@ -1,6 +1,6 @@
 use macroquad::prelude::*;
 
-use crate::{GRID_SIZE, GameState, TILE_SIZE, Tile, resources::Resources};
+use crate::{GRID_SIZE, GameState, Players, TILE_SIZE, Tile, resources::Resources};
 
 pub fn draw_game(state: &GameState, textures: &Resources) {
     for (index, tile) in state.grid.iter().enumerate() {
@@ -45,17 +45,26 @@ pub fn draw_game(state: &GameState, textures: &Resources) {
         draw_rectangle_lines(x, y, TILE_SIZE, TILE_SIZE, 2.0, BLACK);
     }
 
-    for line in state.blocked_lines.iter() {
-        info!("blocked line = {:?}", line);
+    for (index, tile) in state.grid.iter().enumerate() {
+        let x = (index % GRID_SIZE) as f32;
+        let y = (index / GRID_SIZE) as f32;
 
-        draw_line(
-            line.x * TILE_SIZE,
-            0.0,
-            line.x * TILE_SIZE * GRID_SIZE as f32,
-            TILE_SIZE * GRID_SIZE as f32,
-            2.0,
-            PINK,
-        );
+        for line in state.blocked_lines.iter() {
+            if (x == line.1.x || y == line.1.y)
+                && (*tile == Tile::PushUp
+                    || *tile == Tile::PushDown
+                    || *tile == Tile::PushRight
+                    || *tile == Tile::PushLeft)
+            {
+                draw_rectangle(
+                    x * TILE_SIZE,
+                    y * TILE_SIZE,
+                    TILE_SIZE,
+                    TILE_SIZE,
+                    Color::from_rgba(50, 50, 50, 150),
+                );
+            }
+        }
     }
 
     if let Some(index) = state.focused_tile {
@@ -67,10 +76,13 @@ pub fn draw_game(state: &GameState, textures: &Resources) {
             && index != (GRID_SIZE * GRID_SIZE) - GRID_SIZE
             && index != (GRID_SIZE * GRID_SIZE) - 1
         {
-            let alpha = ((get_time() as f32 * 2.0).sin().abs() * 100.0) as u8;
-
-            let alpha_white = Color::from_rgba(255, 255, 255, alpha);
-            draw_rectangle(x, y, TILE_SIZE, TILE_SIZE, alpha_white);
+            draw_rectangle(
+                x,
+                y,
+                TILE_SIZE,
+                TILE_SIZE,
+                Color::from_rgba(255, 255, 255, 100),
+            );
         }
     }
 }
@@ -101,10 +113,24 @@ pub fn draw_ui(state: &GameState) {
     );
 
     if let Some(winner) = &state.winner {
+        let text_color = if *winner == Players::PlayerOne {
+            RED
+        } else {
+            BLUE
+        };
+
         draw_text(
             format!("WINNER!!: {:?}", winner).as_str(),
             5.0,
-            60.0,
+            70.0,
+            32.0,
+            text_color,
+        );
+
+        draw_text(
+            format!("Press R to play again").as_str(),
+            5.0,
+            85.0,
             16.0,
             WHITE,
         );
