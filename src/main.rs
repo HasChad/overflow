@@ -30,6 +30,7 @@ enum Tile {
     PushDown,
     PushLeft,
     PushRight,
+    CantPush,
     Empty,
     Wall,
     Player1,

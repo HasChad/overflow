@@ -2,7 +2,7 @@ use macroquad::prelude::*;
 
 pub fn window_conf() -> Conf {
     Conf {
-        window_title: "epaint".into(),
+        window_title: "Overflow".into(),
         window_width: 600,
         window_height: 600,
         icon: None,

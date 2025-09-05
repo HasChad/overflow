@@ -48,11 +48,15 @@ pub fn second_phase(state: &mut GameState, m_pos: &Vec2) {
 
     if is_mouse_button_pressed(MouseButton::Left) {
         if let Some(index) = state.focused_tile {
-            for line in state.blocked_lines.iter() {
-                let x = (index % GRID_SIZE) as f32;
-                let y = (index / GRID_SIZE) as f32;
+            let x = (index % GRID_SIZE) as f32;
+            let y = (index / GRID_SIZE) as f32;
 
-                if x == line.1.x || y == line.1.y {
+            for line in state.blocked_lines.iter() {
+                if *line.0 == Tile::CantPush {
+                    if x == line.1.x && y == line.1.y {
+                        return;
+                    }
+                } else if x == line.1.x || y == line.1.y {
                     return;
                 }
             }
@@ -81,6 +85,9 @@ pub fn second_phase(state: &mut GameState, m_pos: &Vec2) {
 
                             count += 1;
                         }
+                        state
+                            .blocked_lines
+                            .insert(Tile::CantPush, Vec2::new(x, 0.0));
                         state.grid[index - GRID_SIZE] = Tile::Wall;
                     }
                     Tile::PushDown => {
@@ -93,6 +100,9 @@ pub fn second_phase(state: &mut GameState, m_pos: &Vec2) {
 
                             count += 1;
                         }
+                        state
+                            .blocked_lines
+                            .insert(Tile::CantPush, Vec2::new(x, GRID_SIZE as f32 - 1.0));
                         state.grid[index + GRID_SIZE] = Tile::Wall;
                     }
                     Tile::PushLeft => {
@@ -105,6 +115,9 @@ pub fn second_phase(state: &mut GameState, m_pos: &Vec2) {
 
                             count += 1;
                         }
+                        state
+                            .blocked_lines
+                            .insert(Tile::CantPush, Vec2::new(0.0, y));
                         state.grid[index - 1] = Tile::Wall;
                     }
                     Tile::PushRight => {
@@ -117,6 +130,9 @@ pub fn second_phase(state: &mut GameState, m_pos: &Vec2) {
 
                             count += 1;
                         }
+                        state
+                            .blocked_lines
+                            .insert(Tile::CantPush, Vec2::new(GRID_SIZE as f32 - 1.0, y));
                         state.grid[index + 1] = Tile::Wall;
                     }
                     _ => (),

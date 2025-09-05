@@ -38,7 +38,7 @@ pub fn draw_game(state: &GameState, textures: &Resources) {
             Tile::Player1 => draw_rectangle(x, y, TILE_SIZE, TILE_SIZE, RED),
             Tile::Player2 => draw_rectangle(x, y, TILE_SIZE, TILE_SIZE, DARKBLUE),
             Tile::Block1 => draw_texture_ex(&textures.block, x, y, RED, texture_param),
-            Tile::Block2 => draw_texture_ex(&textures.block, x, y, BLUE, texture_param),
+            Tile::Block2 => draw_texture_ex(&textures.block, x, y, DARKBLUE, texture_param),
             _ => (),
         }
 
@@ -50,19 +50,41 @@ pub fn draw_game(state: &GameState, textures: &Resources) {
         let y = (index / GRID_SIZE) as f32;
 
         for line in state.blocked_lines.iter() {
-            if (x == line.1.x || y == line.1.y)
+            let texture_param = DrawTextureParams {
+                dest_size: Some(Vec2 {
+                    x: TILE_SIZE,
+                    y: TILE_SIZE,
+                }),
+                source: None,
+                rotation: 0.,
+                flip_x: false,
+                flip_y: false,
+                pivot: None,
+            };
+
+            if *line.0 == Tile::CantPush {
+                if x == line.1.x && y == line.1.y {
+                    draw_texture_ex(
+                        &textures.cant_push,
+                        x * TILE_SIZE,
+                        y * TILE_SIZE,
+                        WHITE,
+                        texture_param,
+                    )
+                }
+            } else if (x == line.1.x || y == line.1.y)
                 && (*tile == Tile::PushUp
                     || *tile == Tile::PushDown
                     || *tile == Tile::PushRight
                     || *tile == Tile::PushLeft)
             {
-                draw_rectangle(
+                draw_texture_ex(
+                    &textures.cant_push,
                     x * TILE_SIZE,
                     y * TILE_SIZE,
-                    TILE_SIZE,
-                    TILE_SIZE,
-                    Color::from_rgba(50, 50, 50, 150),
-                );
+                    WHITE,
+                    texture_param,
+                )
             }
         }
     }

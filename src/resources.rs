@@ -4,6 +4,7 @@ pub struct Resources {
     pub arrow: Texture2D,
     pub block: Texture2D,
     pub wall: Texture2D,
+    pub cant_push: Texture2D,
 }
 
 impl Resources {
@@ -12,6 +13,7 @@ impl Resources {
             arrow: load_texture("arrow.png").await.unwrap(),
             block: load_texture("block.png").await.unwrap(),
             wall: load_texture("wall.png").await.unwrap(),
+            cant_push: load_texture("cant_push.png").await.unwrap(),
         }
     }
 }
